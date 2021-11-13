@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 type assetHandler struct {
@@ -14,12 +15,22 @@ type assetHandler struct {
 }
 
 func (h *assetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	req := path.Clean(r.URL.Path)
 	p := filepath.Join(h.webroot, path.Clean(r.URL.Path))
-	if info, err := os.Stat(p); err != nil || info.IsDir() {
-		http.ServeFile(w, r, filepath.Join(h.webroot, "index.html"))
+	if strings.HasPrefix(req, "/static") {
+		if info, err := os.Stat(p); err != nil || info.IsDir() {
+			http.NotFound(w, r)
+			return
+		}
+		http.ServeFile(w, r, p)
 		return
 	}
-	http.ServeFile(w, r, p)
+
+	if info, err := os.Stat(p); err == nil && !info.IsDir() {
+		http.ServeFile(w, r, p)
+		return
+	}
+	http.ServeFile(w, r, filepath.Join(h.webroot, "index.html"))
 }
 
 func NewAssetHandler(webroot string) http.Handler {
