@@ -34,6 +34,8 @@ func main() {
 		CommentRepository: repo,
 	}
 	w := web.NewWeb(asset, api)
+
+	log.Printf("Starting server on %s", *flgHttp)
 	err := http.ListenAndServe(*flgHttp, w)
 	if err != nil {
 		log.Fatal(err)

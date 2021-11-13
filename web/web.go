@@ -3,7 +3,9 @@ package web
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/ueokande/go-react-builderplate/repository"
 )
@@ -24,7 +26,7 @@ func NewWeb(asset http.Handler, api APIHandler) http.Handler {
 	r.HandleFunc("/api/articles/{article_id:[0-9]+}/comments", api.PostArticleComment).Methods(http.MethodPost).HeadersRegexp("Content-Type", "application/json")
 	r.PathPrefix("/api/").HandlerFunc(api.NotFound)
 	r.PathPrefix("/").Handler(asset).Methods(http.MethodGet)
-	return r
+	return handlers.LoggingHandler(os.Stdout, r)
 }
 
 func ErrorJSON(w http.ResponseWriter, message string, code int) {
